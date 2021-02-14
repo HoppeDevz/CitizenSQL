@@ -43,6 +43,7 @@ onNet('Citizen:SQL:fetchAllWithNamedParams', (sql, params, callback) => {
             console.log(`[CITIZEN_SQL] [${time}ms] [${query}]`)
         }
         
-        callback(results, time);
+        let data = fun.FormatTinyIntToBooleanFields(results, fields)
+        callback(data, time);
     });
 });
