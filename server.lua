@@ -1,10 +1,8 @@
-
 Citizen.CreateThread(function()
-    TriggerEvent("Citizen:SQL:executeQueryAndReturnValues", 
-    "SELECT * FROM vrp_user_vehicles WHERE PLATE = 'W066S0K0'",
-    function(data, time)
-        print(data)
-        print(time)
-    end
-)
+    local rows = MySQL.Sync.fetchAll("SELECT * FROM vrp_user_vehicles WHERE plate = @plate", {
+        ["@plate"] = "YJ1689X0"
+    })
+
+    print('rows', rows[1].model)
 end)
+

@@ -1,15 +1,10 @@
-const mysql = require("mysql");
+const db_connection = require("./database");
 const fun = require("./utils/fun");
-
-const db_connection = mysql.createPool({
-    localAddress: "localhost",
-    user: "root",
-    password: "",
-    database: "vrp_dev"
-});
+const settings = require("./settings");
 
 RegisterNetEvent('Citizen:SQL:executeQuery');
 RegisterNetEvent('Citizen:SQL:executeQueryAndReturnValues');
+RegisterNetEvent('Citizen:SQL:fetchAllWithNamedParams')
 
 onNet('Citizen:SQL:executeQuery', sql => {
     db_connection.query(sql);
@@ -24,19 +19,30 @@ onNet('Citizen:SQL:executeQueryAndReturnValues', (sql, callback) => {
     });
 });
 
-/*let plates = [ "60Q2Q03N", "W066S0K0", "YJ1689X0", "42M1WV96", "60Q2Q03N", "3462NX6I" ];
-let i = 0;
+onNet('Citizen:SQL:fetchAllWithNamedParams', (sql, params, callback) => {
+    const pre_query = fun.GetNewDateTime();
+    let query = sql;
 
-setInterval(() => {
-    console.time("performance")
-    let call = db_connection.query(`SELECT * FROM vrp_user_vehicles WHERE plate = '${plates[i]}'`, (err, results, fields) => {
-        console.timeEnd("performance")
-    });
+    if ( params != 0 ) {
+        for (key in params) {
+            if (typeof(params[key]) == "string") {
+                query = query.replace(key, `'${params[key]}'`);
+            }
 
-    i++
-
-    if (i > plates.length) {
-        i = 0
+            if (typeof(params[key] == "number")) {
+                query = query.replace(key, `${params[key]}`);
+            }
+        }
     }
 
-}, 500);*/
+    db_connection.query(query, (err, results, fields) => {
+        const post_query = fun.GetNewDateTime();
+        const time = fun.GetQueryDuration(pre_query, post_query)
+
+        if (settings.show_debug_messages) {
+            console.log(`[CITIZEN_SQL] [${time}ms] [${query}]`)
+        }
+        
+        callback(results, time);
+    });
+});
